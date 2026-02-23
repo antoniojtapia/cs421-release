@@ -29,38 +29,56 @@ data Exp = IntExp Integer
 
 --- ### list2cons
 
--- don't forget to put the type declaration or you will lose points!
-list2cons = undefined
+list2cons :: [a] -> List a
+list2cons [] = Nil
+list2cons (x:xs) = Cons x (list2cons xs)
 
 --- ### cons2list
 
--- don't forget to put the type declaration or you will lose points!
-cons2list = undefined
+cons2list :: List a -> [a]
+cons2list Nil = []
+cons2list (Cons x xs) = x : cons2list xs
 
 --- ### eval
 
--- don't forget to put the type declaration or you will lose points!
-eval = undefined
+eval :: Exp -> Integer
+eval (IntExp int) = int
+eval (PlusExp exp)
+    | exp == [] = 0
+    | otherwise = sum (map eval exp)
+eval (MultExp exp)
+    | exp == [] = 1
+    | otherwise = product (map eval exp)
 
 --- ### list2cons'
 
--- don't forget to put the type declaration or you will lose points!
-list2cons' = undefined
+list2cons' :: [a] -> List a
+list2cons' = foldr Cons Nil
 
 --- ### BinTree
 
 -- BinTree
+data BinTree a = Node a (BinTree a) (BinTree a)
+               | Leaf
+  deriving (Show)
 
 --- ### sumTree
 
--- don't forget to put the type declaration or you will lose points!
-sumTree = undefined
+sumTree :: Num a => BinTree a -> a
+sumTree Leaf = 0
+sumTree (Node val left right) = val + sumTree left + sumTree right
 
 --- ### SimpVal
 
 -- SimpVal
+data SimpVal = IntVal Integer
+             | BoolVal Bool
+             | StrVal String
+             | ExnVal String
+  deriving (Show)
 
 --- ### liftIntOp
 
--- don't forget to put the type declaration or you will lose points!
-liftIntOp = undefined
+liftIntOp :: (Integer -> Integer -> Integer) -> SimpVal -> SimpVal -> SimpVal
+liftIntOp op (IntVal x) (IntVal y) = IntVal (op x y)
+liftIntOp _ _ _ = ExnVal "not an IntVal!"

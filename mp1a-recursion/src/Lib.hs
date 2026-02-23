@@ -32,91 +32,132 @@ tag3 = 24929
 
 --- ### mytake
 
--- don't forget to put the type declaration or you will lose points!
-mytake = undefined
+mytake :: Int -> [a] -> [a]
+mytake n [] = []
+mytake n (x:xs)
+    | n <= 0 = []
+    | otherwise = x : mytake (n - 1) xs
 
 --- ### mydrop
 
--- don't forget to put the type declaration or you will lose points!
-mydrop = undefined
+mydrop :: Int -> [a] -> [a]
+mydrop n [] = []
+mydrop n (x:xs)
+    | n > 0 = mydrop (n - 1) xs
+    | otherwise = (x:xs)
 
 --- ### rev
 
--- don't forget to put the type declaration or you will lose points!
-rev = undefined
+rev :: [a] -> [a]
+rev [] = []
+rev xx = aux xx []
+    where aux [] list = list
+          aux (x:xs) list = aux xs (x:list)
 
 --- ### app
 
--- don't forget to put the type declaration or you will lose points!
-app = undefined
+app :: [a] -> [a] -> [a]
+app [] y = y
+app (x:xs) ys = x : app xs ys
 
 --- ### inclist
 
--- don't forget to put the type declaration or you will lose points!
-inclist = undefined
+inclist :: Num a => [a] -> [a]
+inclist [] = []
+inclist (x:xs) = (x + 1) : inclist xs
 
 --- ### sumlist
 
--- don't forget to put the type declaration or you will lose points!
-sumlist = undefined
+sumlist xx = aux xx 0
+    where aux [] a = a
+          aux (x:xs) a = aux xs (a + x)
 
 --- ### myzip
 
--- don't forget to put the type declaration or you will lose points!
-myzip = undefined
+myzip :: [a] -> [b] -> [(a,b)]
+myzip xx [] = []
+myzip [] yy = []
+myzip (x:xs) (y:ys) = (x, y) : myzip xs ys
 
 --- ### addpairs
 
--- don't forget to put the type declaration or you will lose points!
-addpairs = undefined
+addpairs :: (Num a) => [a] -> [a] -> [a]
+addpairs xx yy =
+    let
+        zipped = myzip xx yy
+    in
+        aux zipped []
+            where aux [] list = list
+                  aux ((x, y):xs) list = (x + y) : aux xs list
 
 --- ### ones
 
--- don't forget to put the type declaration or you will lose points!
-ones = undefined
+ones :: [Integer]
+ones = 1 : ones
 
 --- ### nats
 
--- don't forget to put the type declaration or you will lose points!
-nats = undefined
+nats = aux 0
+    where aux x = x : aux (x + 1)
 
 --- ### fib
 
--- don't forget to put the type declaration or you will lose points!
-fib = undefined
+fib :: [Integer]
+fib = aux 0 1
+    where aux x y = x : aux y (x + y)
 
 --- Set Theory
 --- ----------
 
 --- ### add
 
--- don't forget to put the type declaration or you will lose points!
-add = undefined
+add :: Ord a => a -> [a] -> [a]
+add n [] = [n]
+add n (x:xs)
+    | n == x = n : xs
+    | n < x = n : x : xs
+    | otherwise = x : add n xs
 
 --- ### union
 
--- don't forget to put the type declaration or you will lose points!
-union = undefined
+union :: Ord a => [a] -> [a] -> [a]
+union xx [] = xx
+union [] yy = yy
+union (x:xs) (y:ys)
+    | x < y = x : union xs (y:ys)
+    | x == y = x : union xs ys
+    | x > y = y : union (x:xs) ys
 
 --- ### intersect
 
--- don't forget to put the type declaration or you will lose points!
-intersect = undefined
+intersect :: Ord a => [a] -> [a] -> [a]
+intersect xx [] = []
+intersect [] yy = []
+intersect (x:xs) (y:ys)
+    | x < y = intersect xs (y:ys)
+    | x == y = x : intersect xs ys
+    | x > y = intersect (x:xs) ys
 
 --- ### powerset
 
--- don't forget to put the type declaration or you will lose points!
-powerset = undefined
+powerset :: Ord a => [a] -> [[a]]
+powerset [] = [[]]
+powerset (x:xs) =
+    let
+        subsets = powerset xs
+        added = [add x s | s <- subsets]
+    in
+        union subsets added
 
 --- Higher Order Functions
 --- ----------------------
 
 --- ### inclist'
 
--- don't forget to put the type declaration or you will lose points!
-inclist' = undefined
+inclist' :: Num a => [a] -> [a]
+inclist' = P.map (+1)
 
 --- ### sumlist'
 
--- don't forget to put the type declaration or you will lose points!
-sumlist' = undefined
+sumlist' :: (Num a) => [a] -> a
+sumlist' = P.foldl (+) 0
