@@ -64,12 +64,16 @@ ctorShow (AppExp f e)     = "AppExp (" ++ ctorShow f ++ ") (" ++ ctorShow e ++ "
 --- ### `factk :: Integer -> (Integer -> t) -> t`
 
 factk :: Integer -> (Integer -> t) -> t
-factk = undefined
+factk 0 k = k 1
+factk n k = factk (n - 1) (\v -> k (n * v))
 
 --- ### `evenoddk :: [Integer] -> (Integer -> t) -> (Integer -> t) -> t`
 
 evenoddk :: [Integer] -> (Integer -> t) -> (Integer -> t) -> t
-evenoddk = undefined
+evenoddk [x] ke ko = if even x then ke x else ko x
+evenoddk (x:xs) ke ko = evenoddk xs
+                            (\v -> if even x then ke (v + x) else ke v)
+                            (\v -> if odd x then ko (v + x) else ko v)
 
 --- Automated Translation
 --- ---------------------
@@ -80,22 +84,65 @@ gensym i = ("v" ++ show i, i + 1)
 --- ### Define `isSimple`
 
 isSimple :: Exp -> Bool
-isSimple = undefined
+isSimple (IntExp _) = True
+isSimple (VarExp _) = True
+isSimple (LamExp _ _) = True
+isSimple (IfExp e1 e2 e3) = isSimple e1 && isSimple e2 && isSimple e3
+isSimple (OpExp _ e1 e2) = isSimple e1 && isSimple e2
+isSimple (AppExp _ _) = False
 
 --- ### Define `cpsExp` - Overview
 
 cpsExp :: Exp -> Exp -> Integer -> (Exp, Integer)
-cpsExp = undefined
 
 --- #### Define `cpsExp` for Integer and Variable Expressions
 
+cpsExp (IntExp i) k n = (AppExp k (IntExp i), n)
+cpsExp (VarExp v) k n = (AppExp k (VarExp v), n)
+cpsExp (LamExp x e) k n = (AppExp k (LamExp x e), n)
+
 --- #### Define `cpsExp` for Application Expressions
+
+cpsExp (AppExp f e) k n
+    | isSimple e = (AppExp (AppExp f e) k, n)
+    | otherwise =
+        let (v, n1) = gensym n
+        in cpsExp e (LamExp v (AppExp (AppExp f (VarExp v)) k)) n1
 
 --- #### Define `cpsExp` for Operator Expressions
 
+cpsExp (OpExp op e1 e2) k n
+    | isSimple e1 && isSimple e2 = (AppExp k (OpExp op e1 e2), n)
+    | not (isSimple e1) && isSimple e2 =
+        let (v, n1) = gensym n
+        in cpsExp e1 (LamExp v (AppExp k (OpExp op (VarExp v) e2))) n1
+    | isSimple e1 && not (isSimple e2) =
+        let (v, n1) = gensym n
+        in cpsExp e2 (LamExp v (AppExp k (OpExp op e1 (VarExp v)))) n1
+    | otherwise =
+        let (v1, n1) = gensym n
+            (v2, n2) = gensym n1
+            k2 = LamExp v2 (AppExp k (OpExp op (VarExp v1) (VarExp v2)))
+            (e2', n3) = cpsExp e2 k2 n2
+        in cpsExp e1 (LamExp v1 e2') n3
+
 --- #### Define `cpsExp` for If Expressions
+
+cpsExp (IfExp e1 e2 e3) k n
+    | isSimple e1 =
+        let (e2', n1) = cpsExp e2 k n
+            (e3', n2) = cpsExp e3 k n1
+        in (IfExp e1 e2' e3', n2)
+    | otherwise =
+        let (v, n1) = gensym n
+            (e2', n2) = cpsExp e2 k n1
+            (e3', n3) = cpsExp e3 k n2
+        in cpsExp e1 (LamExp v (IfExp (VarExp v) e2' e3')) n3
 
 --- ### Define `cpsDecl`
 
 cpsDecl :: Stmt -> Stmt
-cpsDecl = undefined
+cpsDecl (Decl f params exp) =
+    let k = VarExp "k"
+        (body, _) = cpsExp exp k 0
+    in Decl f (params ++ ["k"]) body
